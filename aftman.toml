@@ -1,0 +1,11 @@
+# This file lists tools managed by Aftman, a cross-platform toolchain manager.
+# For more information, see https://github.com/LPGhatguy/aftman
+
+# To add a new tool, add an entry to this table.
+[tools]
+rojo = "rojo-rbx/rojo@7.4.1"
+selene = "Kampfkarren/selene@0.27.1"
+stylua = "JohnnyMorganz/StyLua@0.20.0"
+rbxcloud = "Sleitnick/rbxcloud@0.10.0" # Staging GameID: 6036715160 ___ LobbyPlaceID: 17627889157 ___ GamePlaceID: _
+                                       # Production GameID: 6036791560 ___ LobbyPlaceID: 17628126729 ___ GamePlaceID: _
+wally = "UpliftGames/wally@0.3.2"

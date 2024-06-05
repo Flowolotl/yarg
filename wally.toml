@@ -1,0 +1,16 @@
+[package]
+name = "flaw/yarg"
+version = "0.1.0"
+registry = "https://github.com/UpliftGames/wally-index"
+realm = "shared"
+
+[dependencies]
+input = "sleitnick/input@2.3.0"
+signal = "sleitnick/signal@2.0.1"
+option = "sleitnick/option@1.0.5"
+trove = "sleitnick/trove@1.4.0"
+comm = "sleitnick/comm@1.0.1"
+loader = "sleitnick/loader@2.0.0"
+promise = "evaera/promise@4.0.0"
+react = "jsdotlua/react@17.1.0"
+react-roblox = "jsdotlua/react-roblox@17.1.0"

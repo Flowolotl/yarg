@@ -1,0 +1,43 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - game-prod
+      - game-staging
+    pull_request:
+      branches:
+        - game-prod
+        - game-staging
+
+jobs:
+
+  lint:
+    name: Lint
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+
+    - uses: Roblox/setup-foreman@v1
+      name: Install Foreman
+      with:
+        version: "^1.0.0"
+        token: ${{ secrets.GITHUB_TOKEN }}
+      
+
+    - name: Lint
+      run: |
+        selene ./src
+
+  style:
+    name: Styling
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - uses: JohnnyMorganz/stylua-action@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        version: latest
+        args: --check .
