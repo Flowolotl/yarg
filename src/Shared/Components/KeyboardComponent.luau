@@ -1,13 +1,12 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local React = require(ReplicatedStorage.Packages.react)
-local ReactRoblox = require(ReplicatedStorage.Packages["react-roblox"])
 local Input = require(ReplicatedStorage.Packages.input)
 local Keyboard = Input.Keyboard.new()
 
 local Corner = require(ReplicatedStorage.Shared.Components.Corner)
 
-local function ReactiveKeyboard(props)
+local function KeyboardComponent(props)
 	local text, setText = React.useState(props.Key)
 
 	React.useEffect(function()
@@ -30,4 +29,4 @@ local function ReactiveKeyboard(props)
 	}, { Corner(16) })
 end
 
-return ReactiveKeyboard
+return KeyboardComponent
