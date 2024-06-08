@@ -1,5 +1,4 @@
-local Find = require(game:GetService("ReplicatedStorage").Shared.Find)
-local React = require(Find.path(game:GetService("ReplicatedStorage"), "Packages/react"))
+local React = require(game:GetService("ReplicatedStorage").Packages.react)
 
 return function(_radius)
 	return React.createElement("UICorner", {
