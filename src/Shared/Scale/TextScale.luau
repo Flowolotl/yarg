@@ -1,4 +1,3 @@
-local React = require(game:GetService("ReplicatedStorage").Packages.react)
 local State = require(game:GetService("StarterPlayer").StarterPlayerScripts.Game.State)
 
 local Scale = require(script.Parent)

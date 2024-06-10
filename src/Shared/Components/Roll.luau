@@ -5,10 +5,19 @@ local Corner = require(game:GetService("ReplicatedStorage").Shared.Components.Co
 local Text = require(game:GetService("ReplicatedStorage").Shared.Scale.TextScale)
 local ReactFont = require(game:GetService("ReplicatedStorage").Shared.ReactFont)
 
-local font_size = 36
+local ce = React.createElement
 
-local function Roll(props: {})
-	return React.createElement("Frame", {}, {}, {})
+type RollProps = {
+	onClose: () -> (),
+}
+
+local function RollMain(_props: RollProps)
+	return ce("Frame", {
+		Size = UDim2.new(1, 0, 1, 0),
+		Position = UDim2.new(0.5, 0, 0.5, 0),
+		AnchorPoint = Vector2.new(0.5, 0.5),
+		Transparency = 0.5,
+	}, { ce(Corner, { Radius = 16 }) }, {})
 end
 
-return Roll
+return RollMain

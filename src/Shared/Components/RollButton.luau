@@ -1,3 +1,4 @@
+local StarterGui = game:GetService("StarterGui")
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
 
 local Corner = require(game:GetService("ReplicatedStorage").Shared.Components.Corner)
@@ -6,8 +7,14 @@ local Text = require(game:GetService("ReplicatedStorage").Shared.Scale.TextScale
 local ReactFont = require(game:GetService("ReplicatedStorage").Shared.ReactFont)
 
 local font_size = 36
+local ce = React.createElement
 
-local function RollButton(_props: {})
+type RollButtonProps = {
+	Activated: () -> (),
+	Deactivated: () -> (),
+}
+
+local function RollButton(props: RollButtonProps)
 	local rolling, setRolling = React.useState(false)
 	local textSize, setTextSize = React.useState(Text.TextScale(font_size))
 
@@ -15,7 +22,7 @@ local function RollButton(_props: {})
 		Text.AutoScale(setTextSize, font_size)
 	end, {})
 
-	return React.createElement("TextButton", {
+	return ce("TextButton", {
 		Size = UDim2.new(0.121, 0, 0.078, 0),
 		Position = UDim2.new(0.5, 0, 0.85, 0),
 		AnchorPoint = Vector2.new(0.5, 0.5),
@@ -29,12 +36,17 @@ local function RollButton(_props: {})
 			if rolling then
 				return
 			end
+			props.Activated()
 			setRolling(true)
 			print("Rolling")
 			local coro = coroutine.create(function()
-				print("a")
+				-- TODO 1; Animate button slides down off screen and fade out
+				-- TODO 2; Make new function that disables the enabled, and then re-enables them.
+				-- TODO 2; This fixes issue where chat was closed for the player and after rolling it would re-open
+				StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
 				task.wait(3)
-				print("b")
+				StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true)
+				props.Deactivated()
 				setRolling(false)
 			end)
 
@@ -42,7 +54,7 @@ local function RollButton(_props: {})
 			coroutine.yield()
 			coroutine.close(coro)
 		end,
-	}, { Corner(16) }, {})
+	}, { ce(Corner, { Radius = 16 }) }, {})
 end
 
 return RollButton

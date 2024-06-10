@@ -1,7 +1,11 @@
 local React = require(game:GetService("ReplicatedStorage").Packages.react)
 
-return function(_radius)
+type CornerProps = {
+	Radius: number?,
+}
+
+return function(props: CornerProps)
 	return React.createElement("UICorner", {
-		CornerRadius = UDim.new(0, _radius or 30),
+		CornerRadius = UDim.new(0, props.Radius or 30),
 	})
 end
