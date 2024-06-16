@@ -1,10 +1,17 @@
 local StarterGui = game:GetService("StarterGui")
-local React = require(game:GetService("ReplicatedStorage").Packages.react)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local React = require(ReplicatedStorage.Packages.react)
+local ClientComm = require(ReplicatedStorage.Packages.comm).ClientComm
+local Universal = require(ReplicatedStorage.Shared.Dimensions).Universal
 
-local Corner = require(game:GetService("ReplicatedStorage").Shared.Components.Corner)
+local clientComm = ClientComm.new(ReplicatedStorage)
+local roll = clientComm:GetSignal("Roll")
 
-local Text = require(game:GetService("ReplicatedStorage").Shared.Scale.TextScale)
-local ReactFont = require(game:GetService("ReplicatedStorage").Shared.ReactFont)
+local Corner = require(ReplicatedStorage.Shared.Components.Corner)
+
+local Text = require(ReplicatedStorage.Shared.Scale.TextScale)
+local ReactFont = require(ReplicatedStorage.Shared.ReactFont)
+local useClock = require(ReplicatedStorage.Shared.Hooks.useClock)
 
 local font_size = 36
 local ce = React.createElement
@@ -18,13 +25,21 @@ local function RollButton(props: RollButtonProps)
 	local rolling, setRolling = React.useState(false)
 	local textSize, setTextSize = React.useState(Text.TextScale(font_size))
 
+	local clockBinding, reset = useClock()
+	local basePosition = Universal.Wrap(UDim2.new(0.5, 0, 0.85, 0))
+
 	React.useEffect(function()
 		Text.AutoScale(setTextSize, font_size)
 	end, {})
 
 	return ce("TextButton", {
 		Size = UDim2.new(0.121, 0, 0.078, 0),
-		Position = UDim2.new(0.5, 0, 0.85, 0),
+		Position = rolling and clockBinding:map(function(clock: number)
+			return basePosition:CrossRaw(UDim2.new(1, 0, math.clamp(1 + clock / 1, 1, 1.5), 0))
+		end) or basePosition.Base,
+		Transparency = rolling and clockBinding:map(function(clock: number)
+			return math.clamp(clock / 0.125, 0, 1)
+		end) or 0,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = Color3.fromRGB(100, 164, 211),
 		Text = if rolling then "Rolling..." else "Roll",
@@ -32,17 +47,18 @@ local function RollButton(props: RollButtonProps)
 		TextSize = textSize,
 		TextXAlignment = Enum.TextXAlignment.Center,
 		TextYAlignment = Enum.TextYAlignment.Center,
-		[React.Event.Activated] = function()
+		[React.Event.Activated] = function(button)
 			if rolling then
 				return
 			end
+			reset()
 			props.Activated()
+			roll:Fire({ msg = "Hello, server!"})
 			setRolling(true)
 			print("Rolling")
 			local coro = coroutine.create(function()
-				-- TODO 1; Animate button slides down off screen and fade out
-				-- TODO 2; Make new function that disables the enabled, and then re-enables them.
-				-- TODO 2; This fixes issue where chat was closed for the player and after rolling it would re-open
+				-- TODO 1; Make new function that disables the enabled, and then re-enables them.
+				-- TODO 1; This fixes issue where chat was closed for the player and after rolling it would re-open
 				StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, false)
 				task.wait(3)
 				StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.All, true)

@@ -1,4 +1,4 @@
---!nonstrict
+-- !nonstrict
 
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
@@ -6,7 +6,7 @@ local ServerComm = require(ReplicatedStorage.Packages.comm).ServerComm
 
 local serverComm = ServerComm.new(ReplicatedStorage)
 
-local signal = serverComm:CreateSignal("TestSignal")
+local signal = serverComm:CreateSignal("Roll")
 
 Players.PlayerAdded:Connect(function(player)
 	local Character = player.Character or player.CharacterAdded:Wait()
