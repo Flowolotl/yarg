@@ -3,6 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local React = require(ReplicatedStorage.Packages.react)
 local ClientComm = require(ReplicatedStorage.Packages.comm).ClientComm
 local Universal = require(ReplicatedStorage.Shared.Dimensions).Universal
+local Animations = require(ReplicatedStorage.Shared.Animations)
+type Animations = Animations.Animations
 
 local clientComm = ClientComm.new(ReplicatedStorage)
 local roll = clientComm:GetSignal("Roll")
@@ -22,24 +24,26 @@ type RollButtonProps = {
 }
 
 local function RollButton(props: RollButtonProps)
+	local basePosition = Universal.Wrap(UDim2.new(0.5, 0, 0.85, 0))
+	-- local basePosition = Universal.Wrap(UDim2.new(0.5, 0, 0.25, 0))
+	local baseSize = UDim2.new(0.121, 0, 0.078, 0)
+
 	local rolling, setRolling = React.useState(false)
 	local textSize, setTextSize = React.useState(Text.TextScale(font_size))
 
 	local clockBinding, reset = useClock()
-	local basePosition = Universal.Wrap(UDim2.new(0.5, 0, 0.85, 0))
+	local animations: Animations, _ = React.useState(Animations.new(basePosition, baseSize, clockBinding) :: Animations)
+
+	local aT = 1 -- animationTime
 
 	React.useEffect(function()
 		Text.AutoScale(setTextSize, font_size)
 	end, {})
 
 	return ce("TextButton", {
-		Size = UDim2.new(0.121, 0, 0.078, 0),
-		Position = rolling and clockBinding:map(function(clock: number)
-			return basePosition:CrossRaw(UDim2.new(1, 0, math.clamp(1 + clock / 1, 1, 1.5), 0))
-		end) or basePosition.Base,
-		Transparency = rolling and clockBinding:map(function(clock: number)
-			return math.clamp(clock / 0.125, 0, 1)
-		end) or 0,
+		Size = rolling and baseSize or baseSize,
+		Position = rolling and animations:SlideDown(aT) or basePosition.Base,
+		Transparency = rolling and animations:Transparency(aT) or 0,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = Color3.fromRGB(100, 164, 211),
 		Text = if rolling then "Rolling..." else "Roll",
