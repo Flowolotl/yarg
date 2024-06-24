@@ -1,38 +1,39 @@
-local StarterGui = game:GetService("StarterGui")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local React = require(ReplicatedStorage.Packages.react)
-local ClientComm = require(ReplicatedStorage.Packages.comm).ClientComm
-local Universal = require(ReplicatedStorage.Shared.Dimensions).Universal
+local StarterGui = game:GetService("StarterGui")
+
 local Animations = require(ReplicatedStorage.Shared.Animations)
-type Animations = Animations.Animations
-
-local clientComm = ClientComm.new(ReplicatedStorage)
-local roll = clientComm:GetSignal("Roll")
-
+local Comm = require(ReplicatedStorage.Packages.comm)
 local Corner = require(ReplicatedStorage.Shared.Components.Corner)
-
-local Text = require(ReplicatedStorage.Shared.Scale.TextScale)
+local Easings = require(ReplicatedStorage.Shared.Easings)
+local React = require(ReplicatedStorage.Packages.react)
 local ReactFont = require(ReplicatedStorage.Shared.ReactFont)
+local Text = require(ReplicatedStorage.Shared.Scale.TextScale)
+local UniDim = require(ReplicatedStorage.Shared.UniDim)
 local useClock = require(ReplicatedStorage.Shared.Hooks.useClock)
+
+local ClientComm = Comm.ClientComm
+
+local clientComm = ClientComm.new(ReplicatedStorage, true)
+local roll = clientComm:GetSignal("Roll")
 
 local font_size = 36
 local ce = React.createElement
 
+type Animations = Animations.Animations
 type RollButtonProps = {
 	Activated: () -> (),
 	Deactivated: () -> (),
 }
 
 local function RollButton(props: RollButtonProps)
-	local basePosition = Universal.Wrap(UDim2.new(0.5, 0, 0.85, 0))
-	-- local basePosition = Universal.Wrap(UDim2.new(0.5, 0, 0.25, 0))
+	local basePosition = UDim2.new(0.5, 0, 0.85, 0)
 	local baseSize = UDim2.new(0.121, 0, 0.078, 0)
 
 	local rolling, setRolling = React.useState(false)
 	local textSize, setTextSize = React.useState(Text.TextScale(font_size))
 
 	local clockBinding, reset = useClock()
-	local animations: Animations, _ = React.useState(Animations.new(basePosition, baseSize, clockBinding) :: Animations)
+	local animations: Animations = React.useState(Animations.new(basePosition, baseSize, clockBinding) :: Animations)
 
 	local aT = 1 -- animationTime
 
@@ -42,8 +43,8 @@ local function RollButton(props: RollButtonProps)
 
 	return ce("TextButton", {
 		Size = rolling and baseSize or baseSize,
-		Position = rolling and animations:SlideDown(aT) or basePosition.Base,
-		Transparency = rolling and animations:Transparency(aT) or 0,
+		Position = rolling and animations:SlideDown(aT, Easings.Quint.In) or basePosition,
+		Transparency = rolling and animations:Transparency(aT, Easings.Quint.InOut) or 0,
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = Color3.fromRGB(100, 164, 211),
 		Text = if rolling then "Rolling..." else "Roll",
@@ -57,7 +58,7 @@ local function RollButton(props: RollButtonProps)
 			end
 			reset()
 			props.Activated()
-			roll:Fire({ msg = "Hello, server!"})
+			roll:Fire({ msg = "Hello, server!" })
 			setRolling(true)
 			print("Rolling")
 			local coro = coroutine.create(function()

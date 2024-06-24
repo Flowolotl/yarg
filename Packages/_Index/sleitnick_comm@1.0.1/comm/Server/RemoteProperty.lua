@@ -8,6 +8,24 @@ local RemoteSignal = require(script.Parent.RemoteSignal)
 local Types = require(script.Parent.Parent.Types)
 local Util = require(script.Parent.Parent.Util)
 
+export type RemotePropertyImpl = {
+	__index: RemotePropertyImpl,
+	new: (parent: Instance, name: string, initialValue: any, inboundMiddleware: Types.ServerMiddleware?, outboundMiddleware: Types.ServerMiddleware?) -> RemoteProperty,
+	Set: (self: RemoteProperty, value: any) -> nil,
+	SetTop: (self: RemoteProperty, value: any) -> nil,
+	SetFor: (self: RemoteProperty, player: Player, value: any) -> nil,
+	SetForList: (self: RemoteProperty, players: { Player }, value: any) -> nil,
+	SetFilter: (self: RemoteProperty, predicate: (player: Player, value: any) -> boolean, value: any) -> nil,
+	ClearFor: (self: RemoteProperty, player: Player) -> nil,
+	ClearForList: (self: RemoteProperty, players: { Player }) -> nil,
+	ClearFilter: (self: RemoteProperty, predicate: (player: Player) -> boolean) -> nil,
+	Get: (self: RemoteProperty) -> any,
+	GetFor: (self: RemoteProperty, player: Player) -> any,
+	Destroy: (self: RemoteProperty) -> nil,
+}
+
+export type RemoteProperty = typeof(setmetatable({} :: {}, {} :: RemotePropertyImpl))
+
 local None = Util.None
 
 --[=[
@@ -47,7 +65,7 @@ local None = Util.None
 	the data must be set again using one of the setter methods.
 	:::
 ]=]
-local RemoteProperty = {}
+local RemoteProperty = {} :: RemotePropertyImpl
 RemoteProperty.__index = RemoteProperty
 
 function RemoteProperty.new(
@@ -56,7 +74,7 @@ function RemoteProperty.new(
 	initialValue: any,
 	inboundMiddleware: Types.ServerMiddleware?,
 	outboundMiddleware: Types.ServerMiddleware?
-)
+): RemoteProperty
 	local self = setmetatable({}, RemoteProperty)
 	self._rs = RemoteSignal.new(parent, name, false, inboundMiddleware, outboundMiddleware)
 	self._value = initialValue

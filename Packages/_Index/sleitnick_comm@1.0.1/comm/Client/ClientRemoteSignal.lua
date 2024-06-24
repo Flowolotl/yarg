@@ -5,12 +5,23 @@
 local Signal = require(script.Parent.Parent.Parent.Signal)
 local Types = require(script.Parent.Parent.Types)
 
+export type ClientRemoteSignalImpl = {
+	__index: ClientRemoteSignalImpl,
+	new: (re: RemoteEvent | UnreliableRemoteEvent, inboundMiddleware: Types.ClientMiddleware?, outboudMiddleware: Types.ClientMiddleware?) -> ClientRemoteSignal,
+	Connect: (self: ClientRemoteSignal, fn: (...any) -> ()) -> (),
+	Fire: (...any) -> (),
+	Destroy: () -> (),
+	_processOutboundMiddleware: (...any) -> any,
+}
+
+export type ClientRemoteSignal = typeof(setmetatable({} :: { _re: RemoteEvent | UnreliableRemoteEvent, _hasOutbound: boolean, _outbound: Types.ClientMiddleware?, _directConnect: boolean, _signal: Signal.Signal<any>, _reConn: RBXScriptConnection }, {} :: ClientRemoteSignalImpl)) 
+
 --[=[
 	@class ClientRemoteSignal
 	@client
 	Created via `ClientComm:GetSignal()`.
 ]=]
-local ClientRemoteSignal = {}
+local ClientRemoteSignal = {} :: ClientRemoteSignalImpl
 ClientRemoteSignal.__index = ClientRemoteSignal
 
 --[=[

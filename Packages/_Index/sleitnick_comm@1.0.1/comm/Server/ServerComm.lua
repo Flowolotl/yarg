@@ -6,11 +6,23 @@ local Comm = require(script.Parent)
 local Types = require(script.Parent.Parent.Types)
 local Util = require(script.Parent.Parent.Util)
 
+export type ServerCommImpl = {
+	__index: ServerCommImpl,
+	new: (parent: Instance, namespace: string?) -> ServerComm,
+	BindFunction: (self: ServerComm, name: string, fn: Types.FnBind, inboundMiddleware: Types.ServerMiddleware?, outboundMiddleware: Types.ServerMiddleware?) -> RemoteFunction,
+	WrapMethod: (self: ServerComm, tbl: {}, name: string, inboundMiddleware: Types.ServerMiddleware?, outboundMiddleware: Types.ServerMiddleware?) -> RemoteFunction,
+	CreateSignal: (self: ServerComm, name: string, unreliable: boolean?, inboundMiddleware: Types.ServerMiddleware?, outboundMiddleware: Types.ServerMiddleware?) -> Comm.RemoteSignal,
+	CreateProperty: (self: ServerComm, name: string, initialValue: any, inboundMiddleware: Types.ServerMiddleware?, outboundMiddleware: Types.ServerMiddleware?) -> Comm.RemoteProperty,
+	Destroy: (self: ServerComm) -> (),
+}
+
+export type ServerComm = typeof(setmetatable({} :: { _instancesFolder: Folder }, {} :: ServerCommImpl))
+
 --[=[
 	@class ServerComm
 	@server
 ]=]
-local ServerComm = {}
+local ServerComm = {} :: ServerCommImpl
 ServerComm.__index = ServerComm
 
 --[=[
@@ -41,7 +53,7 @@ ServerComm.__index = ServerComm
 	local serverComm = ServerComm.new(game:GetService("ReplicatedStorage"), "MyNamespace")
 	```
 ]=]
-function ServerComm.new(parent: Instance, namespace: string?)
+function ServerComm.new(parent: Instance, namespace: string?): ServerComm
 	assert(Util.IsServer, "ServerComm must be constructed from the server")
 	assert(typeof(parent) == "Instance", "Parent must be of type Instance")
 	local ns = Util.DefaultCommFolderName

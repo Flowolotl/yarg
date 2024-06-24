@@ -1,9 +1,7 @@
-local React = require(game:GetService("ReplicatedStorage").Packages.react)
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local Corner = require(game:GetService("ReplicatedStorage").Shared.Components.Corner)
-
-local Text = require(game:GetService("ReplicatedStorage").Shared.Scale.TextScale)
-local ReactFont = require(game:GetService("ReplicatedStorage").Shared.ReactFont)
+local Corner = require(ReplicatedStorage.Shared.Components.Corner)
+local React = require(ReplicatedStorage.Packages.react)
 
 local ce = React.createElement
 

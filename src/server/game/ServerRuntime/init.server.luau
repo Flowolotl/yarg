@@ -1,12 +1,11 @@
--- !nonstrict
-
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
 local ServerComm = require(ReplicatedStorage.Packages.comm).ServerComm
 
 local serverComm = ServerComm.new(ReplicatedStorage)
-
-local signal = serverComm:CreateSignal("Roll")
+local roll = serverComm:CreateSignal("Roll")
+local slide = serverComm:CreateSignal("Slide")
 
 Players.PlayerAdded:Connect(function(player)
 	local Character = player.Character or player.CharacterAdded:Wait()
@@ -20,6 +19,7 @@ Players.PlayerAdded:Connect(function(player)
 	Weld.Part1 = HumanoidRoot
 end)
 
-signal:Connect(function(player, data)
+roll:Connect(function(player, data)
 	print("TestSignal received from", player.Name, data)
+	slide:Fire(player)
 end)

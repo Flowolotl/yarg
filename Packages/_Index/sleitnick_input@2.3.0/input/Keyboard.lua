@@ -7,8 +7,6 @@ local Signal = require(script.Parent.Parent.Signal)
 
 local UserInputService = game:GetService("UserInputService")
 
-local Map = require(game:GetService("ReplicatedStorage").Shared.Map)
-
 --[=[
 	@class Keyboard
 	@client
@@ -100,12 +98,6 @@ end
 ]=]
 function Keyboard:AreEitherKeysDown(keyCodeOne: Enum.KeyCode, keyCodeTwo: Enum.KeyCode): boolean
 	return self:IsKeyDown(keyCodeOne) or self:IsKeyDown(keyCodeTwo)
-end
-
-function Keyboard:GetKeysDown()
-	return Map(UserInputService:GetKeysPressed(), function(key)
-		return key.KeyCode.Name
-	end)
 end
 
 function Keyboard:_setup()

@@ -7,12 +7,27 @@ local Players = game:GetService("Players")
 local Signal = require(script.Parent.Parent.Parent.Signal)
 local Types = require(script.Parent.Parent.Types)
 
+export type RemoteSignalImpl = {
+	__index: RemoteSignalImpl,
+	new: (parent: Instance, name: string, unreliable: boolean?, inboundMiddleware: Types.ServerMiddleware?, outboundMiddleware: Types.ServerMiddleware?) -> RemoteSignal,
+	IsUnreliable: (self: RemoteSignal) -> boolean,
+	Connect: (self: RemoteSignal, fn: (player: Player, ...any) -> nil) -> Signal.Connection,
+	Fire: (self: RemoteSignal, player: Player, ...any) -> nil,
+	FireAll: (self: RemoteSignal, ...any) -> nil,
+	FireExcept: (self: RemoteSignal, ignorePlayer: Player, ...any) -> nil,
+	FireFilter: (self: RemoteSignal, predicate: (player: Player, ...any) -> boolean, ...any) -> nil,
+	FireFor: (self: RemoteSignal, players: { Player }, ...any) -> nil,
+	Destroy: (self: RemoteSignal) -> nil,
+}
+
+export type RemoteSignal = typeof(setmetatable({} :: {}, {} :: RemoteSignalImpl))
+
 --[=[
 	@class RemoteSignal
 	@server
 	Created via `ServerComm:CreateSignal()`.
 ]=]
-local RemoteSignal = {}
+local RemoteSignal = {} :: RemoteSignalImpl
 RemoteSignal.__index = RemoteSignal
 
 --[=[
@@ -30,7 +45,7 @@ function RemoteSignal.new(
 	unreliable: boolean?,
 	inboundMiddleware: Types.ServerMiddleware?,
 	outboundMiddleware: Types.ServerMiddleware?
-)
+): RemoteSignal
 	local self = setmetatable({}, RemoteSignal)
 	self._re = if unreliable == true then Instance.new("UnreliableRemoteEvent") else Instance.new("RemoteEvent")
 	self._re.Name = name

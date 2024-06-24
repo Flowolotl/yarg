@@ -3,6 +3,9 @@ local RemoteSignal = require(script.RemoteSignal)
 local Types = require(script.Parent.Types)
 local Util = require(script.Parent.Util)
 
+export type RemoteSignal = RemoteSignal.RemoteSignal
+export type RemoteProperty = RemoteProperty.RemoteProperty
+
 local Server = {}
 
 --[=[

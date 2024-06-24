@@ -1,7 +1,7 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
-local React = require(ReplicatedStorage.Packages.react)
 local Input = require(ReplicatedStorage.Packages.input)
+local React = require(ReplicatedStorage.Packages.react)
 local Keyboard = Input.Keyboard.new()
 
 local Corner = require(ReplicatedStorage.Shared.Components.Corner)
@@ -26,7 +26,7 @@ local function KeyboardComponent(props)
 		BackgroundColor3 = Color3.fromRGB(100, 164, 211),
 		Text = text,
 		TextScaled = true,
-	}, { Corner(16) })
+	}, { Corner({ Radius = 16 }) })
 end
 
 return KeyboardComponent

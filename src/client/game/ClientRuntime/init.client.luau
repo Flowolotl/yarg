@@ -1,17 +1,15 @@
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local React = require(ReplicatedStorage.Packages.react)
 local ReactRoblox = require(ReplicatedStorage.Packages["react-roblox"])
-
-local RollButton = require(ReplicatedStorage.Shared.Components.RollButton)
 local Roll = require(ReplicatedStorage.Shared.Components.Roll)
+local RollButton = require(ReplicatedStorage.Shared.Components.RollButton)
+local useToggleState = require(game:GetService("ReplicatedStorage").Shared.Hooks.useToggleState)
 
 local LocalPlayer = Players.LocalPlayer
 local PlayerGui = LocalPlayer.PlayerGui
-
 local ce = React.createElement
-local useToggleState = require(game:GetService("ReplicatedStorage").Shared.Hooks.useToggleState)
 
 local function Main(_props)
 	local rollState = useToggleState(false)
