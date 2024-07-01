@@ -1,10 +1,10 @@
 export type Easings = {
-	Circ: { In: Easing, Out: Easing, InOut: Easing },
-	Quint: { In: Easing, Out: Easing, InOut: Easing },
-	Quart: { In: Easing, Out: Easing, InOut: Easing },
-	Cubic: { In: Easing, Out: Easing, InOut: Easing },
-	Quad: { In: Easing, Out: Easing, InOut: Easing },
-	Sine: { In: Easing, Out: Easing, InOut: Easing },
+	Circ: EasingTable,
+	Quint: EasingTable,
+	Quart: EasingTable,
+	Cubic: EasingTable,
+	Quad: EasingTable,
+	Sine: EasingTable,
 	In: {
 		Circ: Easing,
 		Quint: Easing,
@@ -34,14 +34,14 @@ export type Easings = {
 export type Easing = (x: number) -> number
 type EasingTable = { In: Easing, Out: Easing, InOut: Easing }
 
-local Easings = {
-	Circ = {} :: EasingTable,
-	Quint = {} :: EasingTable,
-	Quart = {} :: EasingTable,
-	Cubic = {} :: EasingTable,
-	Quad = {} :: EasingTable,
-	Sine = {} :: EasingTable,
-}
+local Easings: Easings = {
+	Circ = {},
+	Quint = {},
+	Quart = {},
+	Cubic = {},
+	Quad = {},
+	Sine = {},
+} :: Easings
 
 -- Circle
 function Easings.Circ.In(x)

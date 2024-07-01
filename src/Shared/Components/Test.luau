@@ -1,5 +1,4 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local SolidModelContentProvider = game:GetService("SolidModelContentProvider")
 
 local Animations = require(ReplicatedStorage.Shared.Animations)
 local Comm = require(ReplicatedStorage.Packages.comm)

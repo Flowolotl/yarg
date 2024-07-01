@@ -10,46 +10,82 @@ type Easing = Easings.Easing
 
 export type AnimationsImpl = {
 	__index: AnimationsImpl,
-	new: (basePos: UDim2, baseSize: UDim2, clock: NumberReactBinding) -> Animations,
-	Slide: (self: Animations, timeToComplete: number, easing: Easing, endPos: UDim2) -> React.Binding<UDim2>,
-	SlideDown: (self: Animations, timeToComplete: number, easing: Easing) -> React.Binding<UDim2>,
-	Transparency: (self: Animations, timeToComplete: number, easing: Easing) -> React.Binding<number>,
+	new: (clock: NumberReactBinding) -> Animations,
+	Slide: (self: Animations, animationData: AnimationData) -> React.Binding<UDim2>,
+	Transform: (self: Animations, animationData: AnimationData) -> React.Binding<UDim2>,
+	Transparency: (self: Animations, animationData: AnimationData) -> React.Binding<number>,
+	Reverse: (self: Animations, animationData: AnimationData) -> React.Binding<UDim2> | React.Binding<number>,
 }
 
-export type Animations = typeof(setmetatable(
-	{} :: { basePos: UDim2, baseSize: UDim2, clock: NumberReactBinding },
-	{} :: AnimationsImpl
-))
+export type Animations = typeof(setmetatable({} :: { clock: NumberReactBinding }, {} :: AnimationsImpl))
+
+export type AnimationData = {
+	timeToComplete: number,
+	easing: Easing,
+	start: UDim2 | number,
+	endpoint: Endpoint | UDim2 | number,
+	type: AnimationType,
+	size: UDim2?,
+}
+
+export type AnimationType = "Position" | "Size" | "Transparency"
+
+export type Endpoint = "Down" | "Up" | "Left" | "Right"
 
 local Animations = {} :: AnimationsImpl
 Animations.__index = Animations
 
+local Endpoints = {
+	Down = function(basePos: UDim2, baseSize: UDim2)
+		return UDim2.new(basePos.X.Scale, 0, 1, 0) + UDim2.new(0, 0, baseSize.Y.Scale, 0)
+	end,
+	Up = function(basePos: UDim2, baseSize: UDim2)
+		return UDim2.new(basePos.X.Scale, 0, 0, 0) - UDim2.new(0, 0, baseSize.Y.Scale, 0)
+	end,
+}
+
 --[=[
 	@class Animations
 	@constructor Animations.new(basePos: UDim2, baseSize: UDim2, clock: NumberReactBinding)
-	@param basePos UDim2
-	@param baseSize UDim2
 	@param clock NumberReactBinding
 	@return Animations
 	Creates a new Animations object. Used to animate GUI elements. Uses the useClock() binding to get time for animation progress.
 
 	```lua
 	local useClock = require(ReplicatedStorage.Shared.Hooks.useClock)
-	local _animations: Animation = Animations.new(UDim2.new(0.5, 0, 0.5, 0), UDim2.new(0.1, 0, 0.1, 0), useClock()) :: Animations
+	local _animations: Animation = Animations.new(UDim2.new(0.5, 0, 0.5, 0), UDim2.new(0.1, 0, 0.1, 0), 0, useClock()) :: Animations
 	```
 --]=]
 
-function new(basePos: UDim2, baseSize: UDim2, clock: NumberReactBinding): Animations
+function new(clock: NumberReactBinding): Animations
 	local self = setmetatable({}, Animations)
-	self.basePos = basePos
-	self.baseSize = baseSize
 	self.clock = clock
 	return self
 end
 
+function Animations:Reverse(animationData)
+	if animationData.type == "Position" then
+		local endPos = if typeof(animationData.endpoint) == "string"
+			then Endpoints[animationData.endpoint](animationData.start, animationData.size)
+			else animationData.endpoint
+		-- swap because reversing. this is likely bad practice
+		animationData.start, animationData.endpoint = endPos, animationData.start
+
+		return self:Slide(animationData)
+	elseif animationData.type == "Size" then
+		-- swap because reversing. this is likely bad practice
+		animationData.start, animationData.endpoint = animationData.endpoint, animationData.start
+		return self:Transform(animationData)
+	elseif animationData.type == "Transparency" then
+		-- swap because reversing. this is likely bad practice
+		animationData.start, animationData.endpoint = animationData.endpoint, animationData.start
+		return self:Transparency(animationData)
+	end
+	return nil :: never
+end
+
 --[=[
-	@param endPos UDim2
-	@param timeToComplete number
+	@param animationData AnimationData
 	@return React.Binding<UDim2>
 	Creates a react binding that calculates the new position for an object to slide to the endPos position over time.
 
@@ -70,12 +106,15 @@ end
 	```
 ]=]
 
-function Animations:Slide(timeToComplete, easing, endPos)
-	local startPos = self.basePos
+function Animations:Slide(animationData)
+	assert(typeof(animationData.start) == "UDim2", "Animations:Slide requires animationData.start to be UDim2")
+	local startPos = animationData.start
+	local endPos = if typeof(animationData.endpoint) == "string"
+		then Endpoints[animationData.endpoint](animationData.start, animationData.size)
+		else animationData.endpoint
 	return self.clock:map(function(currentTime: number)
-		assert(typeof(endPos) == "UDim2", "End position must be a UDim2 because start position is a UDim2")
-		local completionPercentage = math.clamp(currentTime / timeToComplete, 0, 1)
-		local easedCompletionPercentage = easing(completionPercentage)
+		local completionPercentage = math.clamp(currentTime / animationData.timeToComplete, 0, 1)
+		local easedCompletionPercentage = animationData.easing(completionPercentage)
 		local distance = (endPos - startPos)
 		local displacement = UniDim.Wrap(distance):MultiplyRaw(easedCompletionPercentage) :: UDim2
 		local newPos = startPos + displacement
@@ -83,30 +122,38 @@ function Animations:Slide(timeToComplete, easing, endPos)
 	end)
 end
 
---[=[
-	@param timeToComplete number
-	@param easing Easing
-	@return React.Binding<UDim2>
-	Creates a react binding that calculates the new position for an object to slide down the screen over time.
---]=]
-
-function Animations:SlideDown(timeToComplete, easing)
-	--TODO: this ASSUMES anchor point is (0.5, 0.5) and only works with scale.
-	print("running slide down")
-	local endPos = UDim2.new(self.basePos.X.Scale, 0, 1, 0) + UDim2.new(0, 0, self.baseSize.Y.Scale, 0)
-	return self:Slide(timeToComplete, easing, endPos)
+function Animations:Transform(animationData)
+	assert(typeof(animationData.start) == "UDim2", "Animations:Transform requires animationData.start to be UDim2")
+	local startSize = animationData.start
+	local endSize = if typeof(animationData.endpoint) == "UDim2" then animationData.endpoint else animationData.start
+	return self.clock:map(function(currentTime: number)
+		local completionPercentage = math.clamp(currentTime / animationData.timeToComplete, 0, 1)
+		local easedCompletionPercentage = animationData.easing(completionPercentage)
+		local difference = (endSize - startSize)
+		local displacement = UniDim.Wrap(difference):MultiplyRaw(easedCompletionPercentage) :: UDim2
+		local newSize = startSize + displacement
+		return newSize
+	end)
 end
 
 --[=[
-	@param timeToComplete number
-	@param easing Easing
+	@param animationData AnimationData
 	@return React.Binding<number>
 	Creates a react binding that calculates the new transparency for an object to apply out over time.
 --]=]
 
-function Animations:Transparency(timeToComplete, easing)
+function Animations:Transparency(animationData)
+	assert(typeof(animationData.start) == "number", "Animations:Transparency requires animationData.start to be number")
+	local startTransparency = animationData.start
+	local endTransparency = if typeof(animationData.endpoint) == "number"
+		then animationData.endpoint
+		else animationData.start
 	return self.clock:map(function(currentTime: number)
-		return easing(math.clamp(currentTime / timeToComplete, 0, 1))
+		local completionPercentage = math.clamp(currentTime / animationData.timeToComplete, 0, 1)
+		local easedCompletionPercentage = animationData.easing(completionPercentage)
+		local difference = (endTransparency - startTransparency) * easedCompletionPercentage
+		local newTransparency = animationData.start + difference
+		return newTransparency
 	end)
 end
 
