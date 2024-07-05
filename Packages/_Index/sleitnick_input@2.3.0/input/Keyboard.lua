@@ -5,7 +5,9 @@
 local Trove = require(script.Parent.Parent.Trove)
 local Signal = require(script.Parent.Parent.Signal)
 
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local UserInputService = game:GetService("UserInputService")
+local Map = require(ReplicatedStorage.Shared.Map)
 
 --[=[
 	@class Keyboard
@@ -71,6 +73,20 @@ end
 ]=]
 function Keyboard:IsKeyDown(keyCode: Enum.KeyCode): boolean
 	return UserInputService:IsKeyDown(keyCode)
+end
+
+--[=[
+	Get all keys that are currently down.
+
+	```lua
+	local keys = keyboard:GetKeysDown()
+	```
+--]=]
+
+function Keyboard:GetKeysDown(): { Enum.KeyCode }
+	return Map(UserInputService:GetKeysPressed(), function(key: InputObject)
+		return key.KeyCode.Name
+	end)
 end
 
 --[=[

@@ -10,6 +10,7 @@ local React = require(ReplicatedStorage.Packages.react)
 local ReactFont = require(ReplicatedStorage.Shared.ReactFont)
 local Text = require(ReplicatedStorage.Shared.Scale.TextScale)
 local Trove = require(ReplicatedStorage.Packages.trove)
+local Endpoints = require(ReplicatedStorage.Shared.Endpoints)
 local useClock = require(ReplicatedStorage.Shared.Hooks.useClock)
 
 local ClientComm = Comm.ClientComm
@@ -20,55 +21,35 @@ local roll = clientComm:GetSignal("Roll")
 local font_size = 36
 local ce = React.createElement
 
-type Animations = Animations.Animations
 type RollButtonProps = {
 	Activated: () -> (),
 	Deactivated: () -> (),
 }
 
 local function RollButton(props: RollButtonProps)
-	local basePosition = UDim2.new(0.5, 0, 0.85, 0)
-	local baseSize = UDim2.new(0.121, 0, 0.078, 0)
-	local baseTransparency = 0
+	local native = {
+		Position = UDim2.new(0.5, 0, 0.85, 0),
+		Size = UDim2.new(0.121, 0, 0.078, 0),
+		Transparency = 0,
+	}
 
 	local rolling, setRolling = React.useState(false)
 	local textSize, setTextSize = React.useState(Text.TextScale(font_size))
 
 	local clockBinding, resetClock = useClock()
-	local animations = React.useState(Animations.new(clockBinding) :: Animations)
+	local positionAnimation = React.useState(Animations.new(clockBinding, native, Endpoints.Down(native), "Position") :: Animations.Animations<UDim2>)
+	local transparencyAnimation = React.useState(Animations.new(clockBinding, native, 1, "Transparency") :: Animations.Animations<number>)
 
-	local positionEndpoint: Animations.Endpoint = "Down"
-	local transparencyEndpoint = 1
-	local aT = 1 -- animationTime
-
-	local positionAnimationData: Animations.AnimationData = {
-		timeToComplete = aT,
-		easing = Easings.Quint.InOut,
-		start = basePosition,
-		endpoint = positionEndpoint,
-		type = "Position",
-		size = baseSize,
-	}
-	local transparencyAnimationData: Animations.AnimationData = {
-		timeToComplete = aT,
-		easing = Easings.Quint.InOut,
-		start = baseTransparency,
-		endpoint = transparencyEndpoint,
-		type = "Transparency",
-	}
+	local aT = 1 -- animationTime	
 
 	React.useEffect(function()
 		Text.AutoScale(setTextSize, font_size)
 	end, {})
 
 	return ce("TextButton", {
-		Size = baseSize,
-		-- Position = rolling and animations:SlideDown(aT, Easings.Quint.In) or basePosition,
-		-- potentially edit the Animations class or make a new one on top of it that is
-		-- more built for react. like a table for Properties and you can set animation data for a property.
-		Position = rolling and animations:Slide(positionAnimationData) or animations:Reverse(positionAnimationData),
-		Transparency = rolling and animations:Transparency(transparencyAnimationData)
-			or animations:Reverse(transparencyAnimationData),
+		Size = native.Size,
+		Position = rolling and positionAnimation:Forward(Easings.Quint.InOut, aT) or positionAnimation:Reverse(Easings.Quint.InOut, aT),
+		Transparency = rolling and transparencyAnimation:Forward(Easings.Quint.InOut, aT) or transparencyAnimation:Reverse(Easings.Quint.InOut, aT),
 		AnchorPoint = Vector2.new(0.5, 0.5),
 		BackgroundColor3 = Color3.fromRGB(100, 164, 211),
 		Text = if rolling then "Rolling..." else "Roll",
